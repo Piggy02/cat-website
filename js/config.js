@@ -9,7 +9,7 @@ const CONFIG = {
 
   // OAuth 2.0 Client ID (Web application) used by admin.html to sign in and
   // move/delete photos. Create one in Cloud Console under Credentials.
-  CLIENT_ID: 'YOUR_OAUTH_CLIENT_ID.apps.googleusercontent.com',
+  CLIENT_ID: '805067828054-9upnf075oks00khnvf2jkn20hko99i3o.apps.googleusercontent.com',
 
   // Link to a Google Form (file upload + "which cat" question) for visitors
   // to submit new photos. Leave as-is to hide the link.
