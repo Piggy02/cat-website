@@ -248,6 +248,98 @@ main {
   font-size: 0.9rem;
 }
 
+.site-footer a {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.admin-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.sign-in-button {
+  display: block;
+  margin: 0 auto 2rem;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.sign-in-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.2rem;
+}
+
+.admin-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  padding-bottom: 0.8rem;
+}
+
+.admin-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  background: #f0e6dd;
+}
+
+.admin-card-cat {
+  font-family: 'Fredoka', sans-serif;
+  margin: 0.6rem 0.8rem 0.4rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.admin-controls {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  flex-wrap: wrap;
+}
+
+.admin-controls select {
+  flex: 1;
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.3rem;
+}
+
+.admin-controls button {
+  border-radius: 8px;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-controls .delete-button {
+  background: #c0392b;
+}
+
 [hidden] {
   display: none;
 }

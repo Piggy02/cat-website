@@ -204,6 +204,13 @@
     showHome(categoryNav.querySelector('button'));
   });
 
+  if (CONFIG.SUBMIT_FORM_URL && !CONFIG.SUBMIT_FORM_URL.startsWith('YOUR_')) {
+    const submitLink = document.getElementById('submitLink');
+    submitLink.href = CONFIG.SUBMIT_FORM_URL;
+    submitLink.hidden = false;
+    document.getElementById('footerSeparator').hidden = false;
+  }
+
   try {
     if (!CONFIG.API_KEY || CONFIG.API_KEY.startsWith('YOUR_') || !CONFIG.ROOT_FOLDER_ID || CONFIG.ROOT_FOLDER_ID.startsWith('YOUR_')) {
       throw new Error('Please set your API_KEY and ROOT_FOLDER_ID in js/config.js (see README.md).');

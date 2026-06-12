@@ -51,7 +51,42 @@ const CONFIG = {
 };
 ```
 
-### 5. Run it
+### 5. (Optional) Set up the "Manage Photos" admin tool
+
+`admin.html` lets signed-in admins move a photo to a different cat folder, or
+delete one (moves it to Drive's trash, recoverable for 30 days).
+
+1. In Cloud Console, go to **APIs & Services → OAuth consent screen**.
+   - User type: **External** (or Internal if you use Google Workspace).
+   - Fill in an app name (e.g. "Cat Website Admin") and a support email.
+   - Under **Test users**, add the Google account email of anyone who should
+     be able to manage photos. While the app is in "Testing" status, only
+     these accounts can sign in — no full Google app verification needed.
+2. Go to **APIs & Services → Credentials → Create Credentials → OAuth client
+   ID**.
+   - Application type: **Web application**.
+   - Authorized JavaScript origins: `https://yourusername.github.io` (no
+     trailing slash or path).
+   - Click **Create** and copy the **Client ID**.
+3. Paste it into `js/config.js` as `CLIENT_ID`.
+4. Open `admin.html`, click **Sign in with Google**, and approve access. You
+   may see an "unverified app" warning — click **Advanced → Go to [app
+   name]**, since this is your own app and you're a test user.
+
+### 6. (Optional) Add a "Submit a photo" link for visitors
+
+1. Create a [Google Form](https://forms.google.com) with:
+   - A "Which cat is this?" question (multiple choice/dropdown, one option
+     per cat folder name).
+   - A "Photo" question of type **File upload**.
+2. Click **Send** and copy the form's link.
+3. Paste it into `js/config.js` as `SUBMIT_FORM_URL`. A "📷 Submit a photo"
+   link will appear in the site footer.
+4. Uploaded photos land in a Drive folder tied to the form's responses —
+   periodically move them into the right cat subfolder (e.g. using the admin
+   tool above, or Drive directly).
+
+### 7. Run it
 
 - **Locally**: just open `index.html` in a browser (or run a local server,
   e.g. `npx serve .`, especially if `http://localhost:*` is in your API key's
@@ -69,6 +104,10 @@ const CONFIG = {
   cat. Clicking a photo opens a full-size lightbox with prev/next navigation.
 - Add or remove photos/folders in Drive and the site updates automatically —
   no rebuild needed.
+- `admin.html` (if configured) lets signed-in admins move photos between
+  cats or send them to the trash, directly from the site.
+- If `SUBMIT_FORM_URL` is configured, a "📷 Submit a photo" link appears in
+  the footer for visitors to add new photos via a Google Form.
 
 ## Notes
 

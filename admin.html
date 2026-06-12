@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Cat Photos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>🐾 Manage Photos</h1>
+    <p class="subtitle">Move a photo to a different cat, or delete it</p>
+  </header>
+
+  <main class="admin-main">
+    <div id="status" class="status"></div>
+    <button id="signInButton" class="sign-in-button">Sign in with Google</button>
+    <div id="adminGrid" class="admin-grid"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p><a href="index.html">&larr; Back to the gallery</a></p>
+  </footer>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
