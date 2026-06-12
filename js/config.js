@@ -14,4 +14,9 @@ const CONFIG = {
   // Link to a Google Form (file upload + "which cat" question) for visitors
   // to submit new photos. Leave as-is to hide the link.
   SUBMIT_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSeI_-KJtwKV0wfadSQEZ1dMblSshwyvoCcwbYnAbi9djclZmg/viewform',
+
+  // The folder ID where the Google Form saves uploaded photos (the
+  // "[Form Title] (File responses)" folder in My Drive). Used by admin.html
+  // to show new submissions for sorting. Leave as-is to hide that section.
+  SUBMISSIONS_FOLDER_ID: 'YOUR_SUBMISSIONS_FOLDER_ID',
 };

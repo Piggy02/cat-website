@@ -4,6 +4,8 @@
 
   const statusEl = document.getElementById('status');
   const signInButton = document.getElementById('signInButton');
+  const submissionsView = document.getElementById('submissionsView');
+  const submissionsGrid = document.getElementById('submissionsGrid');
 
   let accessToken = null;
   let tokenClient = null;
@@ -36,6 +38,14 @@
 
         const select = document.createElement('select');
         select.disabled = true;
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Move to…';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        select.appendChild(placeholder);
+
         Gallery.categories.forEach((c) => {
           if (c.id === cat.id) return;
           const opt = document.createElement('option');
@@ -64,7 +74,10 @@
   );
 
   async function moveImage(img, fromCat, toFolderId, item) {
-    if (!toFolderId || toFolderId === fromCat.id) return;
+    if (!toFolderId || toFolderId === fromCat.id) {
+      setStatus('Please choose a cat to move this photo to.', true);
+      return;
+    }
     setStatus(`Moving "${img.name}"…`);
     try {
       const res = await fetch(
@@ -109,6 +122,126 @@
     }
   }
 
+  async function loadSubmissions() {
+    if (!CONFIG.SUBMISSIONS_FOLDER_ID || CONFIG.SUBMISSIONS_FOLDER_ID.startsWith('YOUR_')) return;
+
+    try {
+      const query = `'${CONFIG.SUBMISSIONS_FOLDER_ID}' in parents and mimeType contains 'image/' and trashed=false`;
+      const url = `${DRIVE_API}?q=${encodeURIComponent(query)}&fields=${encodeURIComponent('files(id,name,thumbnailLink)')}&pageSize=1000&orderBy=createdTime desc`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error?.message || `Error ${res.status}`);
+      }
+      const data = await res.json();
+      renderSubmissions(data.files || []);
+    } catch (err) {
+      setStatus(`⚠️ Couldn't load new submissions: ${err.message}`, true);
+    }
+  }
+
+  function renderSubmissions(files) {
+    submissionsGrid.innerHTML = '';
+
+    if (files.length === 0) {
+      submissionsView.hidden = true;
+      return;
+    }
+
+    files.forEach((img) => {
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+
+      const thumb = document.createElement('img');
+      thumb.src = img.thumbnailLink;
+      thumb.alt = img.name;
+      thumb.loading = 'lazy';
+      item.appendChild(thumb);
+
+      const controls = document.createElement('div');
+      controls.className = 'admin-controls';
+
+      const select = document.createElement('select');
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Assign to…';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+
+      Gallery.categories.forEach((c) => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.displayName;
+        select.appendChild(opt);
+      });
+
+      const moveBtn = document.createElement('button');
+      moveBtn.textContent = 'Move';
+      moveBtn.addEventListener('click', () => moveSubmission(img, select.value, item));
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.className = 'delete-button';
+      deleteBtn.addEventListener('click', () => deleteSubmission(img, item));
+
+      controls.append(select, moveBtn, deleteBtn);
+      item.append(controls);
+      submissionsGrid.appendChild(item);
+    });
+
+    submissionsView.hidden = false;
+  }
+
+  async function moveSubmission(img, toFolderId, item) {
+    if (!toFolderId) {
+      setStatus('Please choose a cat to assign this photo to.', true);
+      return;
+    }
+    setStatus(`Adding "${img.name}"…`);
+    try {
+      const res = await fetch(
+        `${DRIVE_API}/${img.id}?addParents=${toFolderId}&removeParents=${CONFIG.SUBMISSIONS_FOLDER_ID}`,
+        { method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error?.message || `Error ${res.status}`);
+      }
+      const toCat = Gallery.categories.find((c) => c.id === toFolderId);
+      if (toCat) toCat.images.push(img);
+      item.remove();
+      setStatus(`Added "${img.name}" to ${toCat ? toCat.displayName : 'the gallery'}.`);
+      if (!submissionsGrid.children.length) submissionsView.hidden = true;
+    } catch (err) {
+      setStatus(`⚠️ ${err.message}`, true);
+    }
+  }
+
+  async function deleteSubmission(img, item) {
+    if (!confirm(`Move "${img.name}" to the Drive trash?`)) return;
+    setStatus(`Deleting "${img.name}"…`);
+    try {
+      const res = await fetch(`${DRIVE_API}/${img.id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ trashed: true }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error?.message || `Error ${res.status}`);
+      }
+      item.remove();
+      setStatus(`Moved "${img.name}" to the trash.`);
+      if (!submissionsGrid.children.length) submissionsView.hidden = true;
+    } catch (err) {
+      setStatus(`⚠️ ${err.message}`, true);
+    }
+  }
+
   signInButton.addEventListener('click', () => {
     if (!tokenClient) {
       setStatus('Google sign-in is still loading — please wait a moment and try again.', true);
@@ -135,6 +268,7 @@
         signInButton.disabled = true;
         gatedControls.forEach((el) => (el.disabled = false));
         setStatus('Signed in — you can now move or delete photos.');
+        loadSubmissions();
       },
     });
   });

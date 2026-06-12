@@ -82,9 +82,14 @@ delete one (moves it to Drive's trash, recoverable for 30 days).
 2. Click **Send** and copy the form's link.
 3. Paste it into `js/config.js` as `SUBMIT_FORM_URL`. A "📷 Submit a photo"
    link will appear in the site footer.
-4. Uploaded photos land in a Drive folder tied to the form's responses —
-   periodically move them into the right cat subfolder (e.g. using the admin
-   tool above, or Drive directly).
+4. Submit a test photo through the form (so Drive creates the responses
+   folder). In Drive's "My Drive", find the new folder named something like
+   *"[Your Form Title] (File responses)"*, open it, and copy the folder ID
+   from its URL (`https://drive.google.com/drive/folders/<THIS_PART>`).
+5. Paste it into `js/config.js` as `SUBMISSIONS_FOLDER_ID`.
+6. On `admin.html`, after signing in, a **"New Submissions"** section appears
+   at the top (if there are any) — assign each photo to a cat (moves it into
+   that subfolder) or delete it.
 
 ### 7. Run it
 
