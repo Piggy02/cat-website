@@ -53,8 +53,10 @@ const CONFIG = {
 
 ### 5. (Optional) Set up the "Manage Photos" admin tool
 
-`admin.html` lets signed-in admins move a photo to a different cat folder, or
-delete one (moves it to Drive's trash, recoverable for 30 days).
+`admin.html` lets signed-in admins select photos with checkboxes, then use the
+toolbar at the bottom of the page to move the selected photos to a different
+cat folder or delete them (moves them to Drive's trash, recoverable for 30
+days). Both actions ask for confirmation before running.
 
 1. In Cloud Console, go to **APIs & Services → OAuth consent screen**.
    - User type: **External** (or Internal if you use Google Workspace).
@@ -88,8 +90,8 @@ delete one (moves it to Drive's trash, recoverable for 30 days).
    from its URL (`https://drive.google.com/drive/folders/<THIS_PART>`).
 5. Paste it into `js/config.js` as `SUBMISSIONS_FOLDER_ID`.
 6. On `admin.html`, after signing in, a **"New Submissions"** section appears
-   at the top (if there are any) — assign each photo to a cat (moves it into
-   that subfolder) or delete it.
+   at the top (if there are any) — select photos and use the toolbar at the
+   bottom to move them into a cat's folder or delete them.
 
 ### 7. Run it
 
@@ -109,8 +111,9 @@ delete one (moves it to Drive's trash, recoverable for 30 days).
   cat. Clicking a photo opens a full-size lightbox with prev/next navigation.
 - Add or remove photos/folders in Drive and the site updates automatically —
   no rebuild needed.
-- `admin.html` (if configured) lets signed-in admins move photos between
-  cats or send them to the trash, directly from the site.
+- `admin.html` (if configured) lets signed-in admins select multiple photos
+  and move them between cats or send them to the trash, directly from the
+  site, with a confirmation step before each bulk action.
 - If `SUBMIT_FORM_URL` is configured, a "📷 Submit a photo" link appears in
   the footer for visitors to add new photos via a Google Form.
 

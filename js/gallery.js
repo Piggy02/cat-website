@@ -221,6 +221,7 @@ const Gallery = (() => {
         throw new Error('Please set your API_KEY and ROOT_FOLDER_ID in js/config.js (see README.md).');
       }
       await load();
+      if (hooks.onReady) hooks.onReady();
       renderNav();
       renderHome();
       dom.homeView.hidden = false;

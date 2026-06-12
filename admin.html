@@ -45,6 +45,16 @@
     <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
   </div>
 
+  <div id="bulkBar" class="bulk-bar" hidden>
+    <span id="bulkCount" class="bulk-count"></span>
+    <select id="bulkMoveSelect" disabled>
+      <option value="" selected disabled>Move to…</option>
+    </select>
+    <button id="bulkMoveButton" disabled>Move</button>
+    <button id="bulkDeleteButton" class="delete-button" disabled>Delete</button>
+    <button id="bulkClearButton" class="clear-button">Clear selection</button>
+  </div>
+
   <footer class="site-footer">
     <p><a href="index.html">&larr; Back to the gallery</a></p>
   </footer>

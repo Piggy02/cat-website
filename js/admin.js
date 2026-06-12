@@ -6,14 +6,49 @@
   const signInButton = document.getElementById('signInButton');
   const submissionsView = document.getElementById('submissionsView');
   const submissionsGrid = document.getElementById('submissionsGrid');
+  const bulkBar = document.getElementById('bulkBar');
+  const bulkCount = document.getElementById('bulkCount');
+  const bulkMoveSelect = document.getElementById('bulkMoveSelect');
+  const bulkMoveButton = document.getElementById('bulkMoveButton');
+  const bulkDeleteButton = document.getElementById('bulkDeleteButton');
+  const bulkClearButton = document.getElementById('bulkClearButton');
 
   let accessToken = null;
   let tokenClient = null;
-  const gatedControls = []; // selects/buttons to enable once signed in
+  let submissionImages = [];
+  const gatedControls = [bulkMoveSelect, bulkMoveButton, bulkDeleteButton]; // enabled once signed in
+  const selected = new Map(); // image id -> { img, item, fromFolderId, list }
 
   function setStatus(msg, isError = false) {
     statusEl.textContent = msg;
     statusEl.classList.toggle('error', isError);
+  }
+
+  function updateBulkBar() {
+    const count = selected.size;
+    bulkBar.hidden = count === 0;
+    bulkCount.textContent = `${count} photo${count === 1 ? '' : 's'} selected`;
+  }
+
+  function createSelectControl(img, fromFolderId, item, list) {
+    const label = document.createElement('label');
+    label.className = 'select-control';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.disabled = !accessToken;
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        selected.set(img.id, { img, item, fromFolderId, list });
+      } else {
+        selected.delete(img.id);
+      }
+      updateBulkBar();
+    });
+
+    label.append(checkbox, document.createTextNode('Select'));
+    gatedControls.push(checkbox);
+    return label;
   }
 
   Gallery.init(
@@ -32,95 +67,116 @@
       lightboxNext: document.querySelector('#lightbox .lightbox-next'),
     },
     {
-      onImageRendered: (item, img, cat) => {
-        const controls = document.createElement('div');
-        controls.className = 'admin-controls';
-
-        const select = document.createElement('select');
-        select.disabled = true;
-
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Move to…';
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        select.appendChild(placeholder);
-
+      onReady: () => {
         Gallery.categories.forEach((c) => {
-          if (c.id === cat.id) return;
           const opt = document.createElement('option');
           opt.value = c.id;
           opt.textContent = c.displayName;
-          select.appendChild(opt);
+          bulkMoveSelect.appendChild(opt);
         });
-
-        const moveBtn = document.createElement('button');
-        moveBtn.textContent = 'Move';
-        moveBtn.disabled = true;
-        moveBtn.addEventListener('click', () => moveImage(img, cat, select.value, item));
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.className = 'delete-button';
-        deleteBtn.disabled = true;
-        deleteBtn.addEventListener('click', () => deleteImage(img, cat, item));
-
-        controls.append(select, moveBtn, deleteBtn);
-        item.appendChild(controls);
-
-        gatedControls.push(select, moveBtn, deleteBtn);
+      },
+      onImageRendered: (item, img, cat) => {
+        item.appendChild(createSelectControl(img, cat.id, item, cat.images));
       },
     }
   );
 
-  async function moveImage(img, fromCat, toFolderId, item) {
-    if (!toFolderId || toFolderId === fromCat.id) {
-      setStatus('Please choose a cat to move this photo to.', true);
-      return;
-    }
-    setStatus(`Moving "${img.name}"…`);
-    try {
-      const res = await fetch(
-        `${DRIVE_API}/${img.id}?addParents=${toFolderId}&removeParents=${fromCat.id}`,
-        { method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error?.message || `Error ${res.status}`);
-      }
-      const toCat = Gallery.categories.find((c) => c.id === toFolderId);
-      fromCat.images = fromCat.images.filter((i) => i.id !== img.id);
-      if (toCat) toCat.images.push(img);
-      item.remove();
-      setStatus(`Moved "${img.name}" to ${toCat ? toCat.displayName : 'the other folder'}.`);
-    } catch (err) {
-      setStatus(`⚠️ ${err.message}`, true);
-    }
+  function uncheckEntry(entry) {
+    const checkbox = entry.item.querySelector('.select-control input');
+    if (checkbox) checkbox.checked = false;
+    selected.delete(entry.img.id);
   }
 
-  async function deleteImage(img, cat, item) {
-    if (!confirm(`Move "${img.name}" to the Drive trash?`)) return;
-    setStatus(`Deleting "${img.name}"…`);
-    try {
-      const res = await fetch(`${DRIVE_API}/${img.id}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ trashed: true }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error?.message || `Error ${res.status}`);
-      }
-      cat.images = cat.images.filter((i) => i.id !== img.id);
-      item.remove();
-      setStatus(`Moved "${img.name}" to the trash.`);
-    } catch (err) {
-      setStatus(`⚠️ ${err.message}`, true);
+  async function bulkMove() {
+    const destId = bulkMoveSelect.value;
+    if (!destId) {
+      setStatus('Please choose a cat to move the selected photos to.', true);
+      return;
     }
+    const entries = [...selected.values()];
+    if (entries.length === 0) return;
+
+    const destCat = Gallery.categories.find((c) => c.id === destId);
+    const count = entries.length;
+    if (!confirm(`Move ${count} photo${count === 1 ? '' : 's'} to ${destCat.displayName}?`)) return;
+
+    setStatus(`Moving ${count} photo${count === 1 ? '' : 's'}…`);
+    for (const entry of entries) {
+      if (entry.fromFolderId === destId) {
+        uncheckEntry(entry);
+        continue;
+      }
+      try {
+        const res = await fetch(
+          `${DRIVE_API}/${entry.img.id}?addParents=${destId}&removeParents=${entry.fromFolderId}`,
+          { method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error?.message || `Error ${res.status}`);
+        }
+        const idx = entry.list.indexOf(entry.img);
+        if (idx !== -1) entry.list.splice(idx, 1);
+        destCat.images.push(entry.img);
+        entry.item.remove();
+        selected.delete(entry.img.id);
+      } catch (err) {
+        setStatus(`⚠️ ${err.message}`, true);
+        updateBulkBar();
+        return;
+      }
+    }
+    setStatus(`Moved ${count} photo${count === 1 ? '' : 's'} to ${destCat.displayName}.`);
+    bulkMoveSelect.value = '';
+    updateBulkBar();
+    if (!submissionsGrid.children.length) submissionsView.hidden = true;
   }
+
+  async function bulkDelete() {
+    const entries = [...selected.values()];
+    if (entries.length === 0) return;
+
+    const count = entries.length;
+    if (!confirm(`Move ${count} photo${count === 1 ? '' : 's'} to the Drive trash?`)) return;
+
+    setStatus(`Deleting ${count} photo${count === 1 ? '' : 's'}…`);
+    for (const entry of entries) {
+      try {
+        const res = await fetch(`${DRIVE_API}/${entry.img.id}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ trashed: true }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error?.message || `Error ${res.status}`);
+        }
+        const idx = entry.list.indexOf(entry.img);
+        if (idx !== -1) entry.list.splice(idx, 1);
+        entry.item.remove();
+        selected.delete(entry.img.id);
+      } catch (err) {
+        setStatus(`⚠️ ${err.message}`, true);
+        updateBulkBar();
+        return;
+      }
+    }
+    setStatus(`Moved ${count} photo${count === 1 ? '' : 's'} to the trash.`);
+    updateBulkBar();
+    if (!submissionsGrid.children.length) submissionsView.hidden = true;
+  }
+
+  function clearSelection() {
+    [...selected.values()].forEach(uncheckEntry);
+    updateBulkBar();
+  }
+
+  bulkMoveButton.addEventListener('click', bulkMove);
+  bulkDeleteButton.addEventListener('click', bulkDelete);
+  bulkClearButton.addEventListener('click', clearSelection);
 
   async function loadSubmissions() {
     if (!CONFIG.SUBMISSIONS_FOLDER_ID || CONFIG.SUBMISSIONS_FOLDER_ID.startsWith('YOUR_')) return;
@@ -134,21 +190,22 @@
         throw new Error(body?.error?.message || `Error ${res.status}`);
       }
       const data = await res.json();
-      renderSubmissions(data.files || []);
+      submissionImages = data.files || [];
+      renderSubmissions();
     } catch (err) {
       setStatus(`⚠️ Couldn't load new submissions: ${err.message}`, true);
     }
   }
 
-  function renderSubmissions(files) {
+  function renderSubmissions() {
     submissionsGrid.innerHTML = '';
 
-    if (files.length === 0) {
+    if (submissionImages.length === 0) {
       submissionsView.hidden = true;
       return;
     }
 
-    files.forEach((img) => {
+    submissionImages.forEach((img) => {
       const item = document.createElement('div');
       item.className = 'gallery-item';
 
@@ -158,88 +215,12 @@
       thumb.loading = 'lazy';
       item.appendChild(thumb);
 
-      const controls = document.createElement('div');
-      controls.className = 'admin-controls';
+      item.appendChild(createSelectControl(img, CONFIG.SUBMISSIONS_FOLDER_ID, item, submissionImages));
 
-      const select = document.createElement('select');
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Assign to…';
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      select.appendChild(placeholder);
-
-      Gallery.categories.forEach((c) => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.displayName;
-        select.appendChild(opt);
-      });
-
-      const moveBtn = document.createElement('button');
-      moveBtn.textContent = 'Move';
-      moveBtn.addEventListener('click', () => moveSubmission(img, select.value, item));
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.className = 'delete-button';
-      deleteBtn.addEventListener('click', () => deleteSubmission(img, item));
-
-      controls.append(select, moveBtn, deleteBtn);
-      item.append(controls);
       submissionsGrid.appendChild(item);
     });
 
     submissionsView.hidden = false;
-  }
-
-  async function moveSubmission(img, toFolderId, item) {
-    if (!toFolderId) {
-      setStatus('Please choose a cat to assign this photo to.', true);
-      return;
-    }
-    setStatus(`Adding "${img.name}"…`);
-    try {
-      const res = await fetch(
-        `${DRIVE_API}/${img.id}?addParents=${toFolderId}&removeParents=${CONFIG.SUBMISSIONS_FOLDER_ID}`,
-        { method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error?.message || `Error ${res.status}`);
-      }
-      const toCat = Gallery.categories.find((c) => c.id === toFolderId);
-      if (toCat) toCat.images.push(img);
-      item.remove();
-      setStatus(`Added "${img.name}" to ${toCat ? toCat.displayName : 'the gallery'}.`);
-      if (!submissionsGrid.children.length) submissionsView.hidden = true;
-    } catch (err) {
-      setStatus(`⚠️ ${err.message}`, true);
-    }
-  }
-
-  async function deleteSubmission(img, item) {
-    if (!confirm(`Move "${img.name}" to the Drive trash?`)) return;
-    setStatus(`Deleting "${img.name}"…`);
-    try {
-      const res = await fetch(`${DRIVE_API}/${img.id}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ trashed: true }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error?.message || `Error ${res.status}`);
-      }
-      item.remove();
-      setStatus(`Moved "${img.name}" to the trash.`);
-      if (!submissionsGrid.children.length) submissionsView.hidden = true;
-    } catch (err) {
-      setStatus(`⚠️ ${err.message}`, true);
-    }
   }
 
   signInButton.addEventListener('click', () => {
@@ -267,7 +248,7 @@
         signInButton.textContent = 'Signed in ✓';
         signInButton.disabled = true;
         gatedControls.forEach((el) => (el.disabled = false));
-        setStatus('Signed in — you can now move or delete photos.');
+        setStatus('Signed in — select photos to move or delete them.');
         loadSubmissions();
       },
     });

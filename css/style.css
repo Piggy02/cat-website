@@ -280,37 +280,82 @@ main {
   cursor: default;
 }
 
-.admin-controls {
+.select-control {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  cursor: pointer;
+  user-select: none;
 }
 
-.admin-controls select {
-  flex: 1;
-  min-width: 0;
+.select-control input {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+.select-control input:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.bulk-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.6rem 1.2rem;
+  background: var(--card-bg);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  z-index: 500;
+}
+
+.bulk-count {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.bulk-bar select {
   border-radius: 8px;
   border: 1px solid #ddd;
-  padding: 0.3rem;
+  padding: 0.3rem 0.5rem;
 }
 
-.admin-controls button {
+.bulk-bar button {
   border-radius: 8px;
   border: none;
-  padding: 0.3rem 0.7rem;
+  padding: 0.4rem 0.9rem;
   cursor: pointer;
   background: var(--accent);
   color: #fff;
   font-weight: 600;
 }
 
-.admin-controls button:disabled {
+.bulk-bar button:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.admin-controls .delete-button {
+.bulk-bar .delete-button {
   background: #c0392b;
+}
+
+.bulk-bar .clear-button {
+  background: none;
+  color: var(--text-light);
+  text-decoration: underline;
+  padding: 0.4rem 0.3rem;
 }
 
 [hidden] {
