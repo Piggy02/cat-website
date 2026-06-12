@@ -172,7 +172,13 @@ main {
   gap: 1rem;
 }
 
-.gallery-grid img {
+.gallery-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gallery-item img {
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
@@ -183,7 +189,7 @@ main {
   transition: transform 0.15s;
 }
 
-.gallery-grid img:hover {
+.gallery-item img:hover {
   transform: scale(1.03);
 }
 
@@ -253,15 +259,12 @@ main {
   font-weight: 600;
 }
 
-.admin-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem 3rem;
+.admin-bar {
+  text-align: center;
+  padding: 0 1rem 1.5rem;
 }
 
 .sign-in-button {
-  display: block;
-  margin: 0 auto 2rem;
   font-family: 'Fredoka', sans-serif;
   font-size: 1rem;
   padding: 0.6rem 1.5rem;
@@ -277,39 +280,9 @@ main {
   cursor: default;
 }
 
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.2rem;
-}
-
-.admin-card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  padding-bottom: 0.8rem;
-}
-
-.admin-card img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-  background: #f0e6dd;
-}
-
-.admin-card-cat {
-  font-family: 'Fredoka', sans-serif;
-  margin: 0.6rem 0.8rem 0.4rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-}
-
 .admin-controls {
   display: flex;
   gap: 0.4rem;
-  padding: 0 0.8rem;
   flex-wrap: wrap;
 }
 

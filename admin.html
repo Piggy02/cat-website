@@ -12,14 +12,33 @@
 <body>
   <header class="site-header">
     <h1>🐾 Manage Photos</h1>
-    <p class="subtitle">Move a photo to a different cat, or delete it</p>
+    <p class="subtitle">Sign in to move photos between cats or delete them</p>
   </header>
 
-  <main class="admin-main">
-    <div id="status" class="status"></div>
+  <div class="admin-bar">
     <button id="signInButton" class="sign-in-button">Sign in with Google</button>
-    <div id="adminGrid" class="admin-grid"></div>
+  </div>
+
+  <nav id="categoryNav" class="category-nav" aria-label="Cat categories"></nav>
+
+  <main>
+    <div id="status" class="status"></div>
+
+    <section id="homeView" class="home-grid" hidden></section>
+
+    <section id="galleryView" class="gallery-view" hidden>
+      <button id="backButton" class="back-button">&larr; Back to all cats</button>
+      <h2 id="galleryTitle" class="gallery-title"></h2>
+      <div id="galleryGrid" class="gallery-grid"></div>
+    </section>
   </main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
+    <img class="lightbox-img" src="" alt="" />
+    <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
+  </div>
 
   <footer class="site-footer">
     <p><a href="index.html">&larr; Back to the gallery</a></p>
@@ -27,6 +46,7 @@
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="js/config.js"></script>
+  <script src="js/gallery.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>
