@@ -13,5 +13,5 @@ const CONFIG = {
 
   // Link to a Google Form (file upload + "which cat" question) for visitors
   // to submit new photos. Leave as-is to hide the link.
-  SUBMIT_FORM_URL: 'YOUR_GOOGLE_FORM_URL',
+  SUBMIT_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSeI_-KJtwKV0wfadSQEZ1dMblSshwyvoCcwbYnAbi9djclZmg/viewform',
 };
