@@ -18,6 +18,19 @@ body {
   font-family: 'Nunito', sans-serif;
   background: var(--bg);
   color: var(--text);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('../background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: -1;
 }
 
 .site-header {
