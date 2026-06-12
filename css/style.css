@@ -1,0 +1,236 @@
+:root {
+  --bg: #fff8f0;
+  --card-bg: #ffffff;
+  --accent: #ff8c5a;
+  --accent-dark: #e36f3a;
+  --text: #4a3b32;
+  --text-light: #8a7468;
+  --shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.site-header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+}
+
+.site-header h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2.5rem;
+  margin: 0;
+  color: var(--accent-dark);
+}
+
+.subtitle {
+  margin: 0.5rem 0 0;
+  color: var(--text-light);
+}
+
+.category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0 1rem 1.5rem;
+}
+
+.category-nav button {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--card-bg);
+  color: var(--accent-dark);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+
+.category-nav button:hover {
+  transform: translateY(-2px);
+}
+
+.category-nav button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.status {
+  text-align: center;
+  color: var(--text-light);
+  padding: 2rem 0;
+  font-size: 1.1rem;
+}
+
+.status.error {
+  color: #c0392b;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.cat-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.cat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.cat-card .cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #f0e6dd;
+  display: block;
+}
+
+.cat-card .cat-info {
+  padding: 0.9rem 1rem;
+}
+
+.cat-card .cat-info h3 {
+  margin: 0;
+  font-family: 'Fredoka', sans-serif;
+  color: var(--text);
+}
+
+.cat-card .cat-info p {
+  margin: 0.25rem 0 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.gallery-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.back-button {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--accent-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0;
+}
+
+.gallery-title {
+  font-family: 'Fredoka', sans-serif;
+  margin: 0 0 1.2rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f0e6dd;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+
+.gallery-grid img:hover {
+  transform: scale(1.03);
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 12, 8, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.5rem;
+  font-size: 2.2rem;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  opacity: 0.8;
+}
+
+.lightbox-nav:hover {
+  opacity: 1;
+}
+
+.lightbox-prev {
+  left: 0.5rem;
+}
+
+.lightbox-next {
+  right: 0.5rem;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--text-light);
+  padding: 1.5rem 0 2.5rem;
+  font-size: 0.9rem;
+}
