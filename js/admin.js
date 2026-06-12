@@ -12,11 +12,21 @@
   const bulkMoveButton = document.getElementById('bulkMoveButton');
   const bulkDeleteButton = document.getElementById('bulkDeleteButton');
   const bulkClearButton = document.getElementById('bulkClearButton');
+  const uploadCategorySelect = document.getElementById('uploadCategorySelect');
+  const uploadInput = document.getElementById('uploadInput');
+  const uploadButton = document.getElementById('uploadButton');
 
   let accessToken = null;
   let tokenClient = null;
   let submissionImages = [];
-  const gatedControls = [bulkMoveSelect, bulkMoveButton, bulkDeleteButton]; // enabled once signed in
+  const gatedControls = [
+    bulkMoveSelect,
+    bulkMoveButton,
+    bulkDeleteButton,
+    uploadCategorySelect,
+    uploadInput,
+    uploadButton,
+  ]; // enabled once signed in
   const selected = new Map(); // image id -> { img, item, fromFolderId, list }
 
   function setStatus(msg, isError = false) {
@@ -69,10 +79,15 @@
     {
       onReady: () => {
         Gallery.categories.forEach((c) => {
-          const opt = document.createElement('option');
-          opt.value = c.id;
-          opt.textContent = c.displayName;
-          bulkMoveSelect.appendChild(opt);
+          const moveOpt = document.createElement('option');
+          moveOpt.value = c.id;
+          moveOpt.textContent = c.displayName;
+          bulkMoveSelect.appendChild(moveOpt);
+
+          const uploadOpt = document.createElement('option');
+          uploadOpt.value = c.id;
+          uploadOpt.textContent = c.displayName;
+          uploadCategorySelect.appendChild(uploadOpt);
         });
       },
       onImageRendered: (item, img, cat) => {
@@ -129,6 +144,7 @@
     setStatus(`Moved ${count} photo${count === 1 ? '' : 's'} to ${destCat.displayName}.`);
     bulkMoveSelect.value = '';
     updateBulkBar();
+    Gallery.renderHome();
     if (!submissionsGrid.children.length) submissionsView.hidden = true;
   }
 
@@ -166,6 +182,7 @@
     }
     setStatus(`Moved ${count} photo${count === 1 ? '' : 's'} to the trash.`);
     updateBulkBar();
+    Gallery.renderHome();
     if (!submissionsGrid.children.length) submissionsView.hidden = true;
   }
 
@@ -177,6 +194,80 @@
   bulkMoveButton.addEventListener('click', bulkMove);
   bulkDeleteButton.addEventListener('click', bulkDelete);
   bulkClearButton.addEventListener('click', clearSelection);
+
+  async function uploadFile(file, destId) {
+    const boundary = 'cat-website-boundary';
+    const metadata = { name: file.name, parents: [destId] };
+    const fileData = await file.arrayBuffer();
+
+    const body = new Blob([
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+      `--${boundary}\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
+      fileData,
+      `\r\n--${boundary}--`,
+    ]);
+
+    const res = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=${encodeURIComponent('id,name,thumbnailLink')}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body,
+      }
+    );
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody?.error?.message || `Error ${res.status}`);
+    }
+    return res.json();
+  }
+
+  async function uploadPhotos() {
+    const destId = uploadCategorySelect.value;
+    if (!destId) {
+      setStatus('Please choose a cat to add the photo(s) to.', true);
+      return;
+    }
+    const files = [...uploadInput.files];
+    if (files.length === 0) {
+      setStatus('Please choose one or more photos to upload.', true);
+      return;
+    }
+
+    const destCat = Gallery.categories.find((c) => c.id === destId);
+    const count = files.length;
+    setStatus(`Uploading ${count} photo${count === 1 ? '' : 's'}…`);
+
+    for (const file of files) {
+      try {
+        const uploaded = await uploadFile(file, destId);
+        destCat.images.push({
+          id: uploaded.id,
+          name: uploaded.name,
+          thumbnailLink: uploaded.thumbnailLink,
+        });
+      } catch (err) {
+        setStatus(`⚠️ ${err.message}`, true);
+        return;
+      }
+    }
+
+    uploadInput.value = '';
+    clearSelection();
+    if (Gallery.currentCategory && Gallery.currentCategory.id === destId) {
+      Gallery.renderCategory(destCat);
+    }
+    Gallery.renderHome();
+    setStatus(
+      `Added ${count} photo${count === 1 ? '' : 's'} to ${destCat.displayName}. ` +
+        `New thumbnails can take a minute to appear — reload the page if they look blank.`
+    );
+  }
+
+  uploadButton.addEventListener('click', uploadPhotos);
 
   async function loadSubmissions() {
     if (!CONFIG.SUBMISSIONS_FOLDER_ID || CONFIG.SUBMISSIONS_FOLDER_ID.startsWith('YOUR_')) return;

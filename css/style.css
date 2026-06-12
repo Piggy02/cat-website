@@ -280,6 +280,41 @@ main {
   cursor: default;
 }
 
+.upload-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0 1rem 1.5rem;
+}
+
+.upload-bar select,
+.upload-bar input[type='file'] {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.6rem;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.upload-bar button {
+  border-radius: 8px;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.upload-bar button:disabled,
+.upload-bar select:disabled,
+.upload-bar input:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .select-control {
   display: flex;
   align-items: center;

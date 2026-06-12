@@ -9,6 +9,7 @@ const Gallery = (() => {
   let categories = []; // [{ id, name, displayName, images: [{id, name, thumbnailLink}] }]
   let currentImages = [];
   let currentIndex = 0;
+  let currentCategory = null;
   let dom = {};
   let hooks = {};
 
@@ -124,12 +125,13 @@ const Gallery = (() => {
   }
 
   function showHome(navBtn) {
+    currentCategory = null;
     dom.homeView.hidden = false;
     dom.galleryView.hidden = true;
     setActiveNav(navBtn);
   }
 
-  function showGallery(cat, navBtn) {
+  function renderCategory(cat) {
     dom.galleryTitle.textContent = cat.displayName;
     dom.galleryGrid.innerHTML = '';
     currentImages = cat.images;
@@ -141,7 +143,7 @@ const Gallery = (() => {
       const el = document.createElement('img');
       el.loading = 'lazy';
       el.alt = img.name;
-      el.src = img.thumbnailLink;
+      el.src = img.thumbnailLink || '';
       el.addEventListener('click', () => openLightbox(idx));
       item.appendChild(el);
 
@@ -157,7 +159,11 @@ const Gallery = (() => {
       p.textContent = 'No photos in this folder yet.';
       dom.galleryGrid.appendChild(p);
     }
+  }
 
+  function showGallery(cat, navBtn) {
+    currentCategory = cat;
+    renderCategory(cat);
     dom.homeView.hidden = true;
     dom.galleryView.hidden = false;
     setActiveNav(navBtn);
@@ -233,8 +239,13 @@ const Gallery = (() => {
   return {
     init,
     start,
+    renderCategory,
+    renderHome,
     get categories() {
       return categories;
+    },
+    get currentCategory() {
+      return currentCategory;
     },
   };
 })();
