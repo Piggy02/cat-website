@@ -79,6 +79,30 @@ const CONFIG = {
 4. Open `admin.html`, click **Sign in with Google**, and approve access. You
    may see an "unverified app" warning — click **Advanced → Go to [app
    name]**, since this is your own app and you're a test user.
+5. Edit `ALLOWED_EMAILS` in `js/config.js` to list the Google account
+   email(s) allowed to use the admin tool (lowercase). Anyone who signs in
+   with a different account is signed back out immediately.
+
+#### Publishing the OAuth app (optional)
+
+While the consent screen is in **Testing** status, only accounts listed under
+**Test users** can sign in, and access tokens stop working after about a week
+— so admins have to re-approve the consent screen periodically.
+
+Publishing the app to **Production** (OAuth consent screen → **Publish App**)
+removes that weekly expiry. Once published, *any* Google account can get past
+the consent screen — `ALLOWED_EMAILS` is then the only thing keeping
+non-admins out of the tool itself. Note this is a client-side check (anyone
+can read `js/config.js`), so don't rely on it to protect anything more
+sensitive than "don't show the admin UI to the wrong people" — keep the Drive
+folders themselves private to your account, since that's the real access
+boundary.
+
+Publishing a non-Workspace ("External") app that requests the full `drive`
+scope may trigger Google's "unverified app" warning for any account, or a
+verification requirement. If you have a Google Workspace account, choosing
+**Internal** instead of **External** avoids all of this (no expiry, no
+verification, and Google restricts sign-in to your organization).
 
 ### 6. (Optional) Sort photos submitted via a private Google Form
 

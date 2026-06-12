@@ -1,6 +1,7 @@
 (function () {
   const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
-  const SCOPE = 'https://www.googleapis.com/auth/drive';
+  const SCOPE = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email';
+  const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
   const TOKEN_STORAGE_KEY = 'catAdminAuth';
 
   const statusEl = document.getElementById('status');
@@ -59,8 +60,23 @@
     localStorage.removeItem(TOKEN_STORAGE_KEY);
   }
 
-  function handleSignedIn(token) {
+  async function handleSignedIn(token) {
     accessToken = token;
+
+    let email = null;
+    try {
+      const res = await fetch(USERINFO_URL, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) ({ email } = await res.json());
+    } catch {
+      // network error — treated as unauthorized below
+    }
+
+    const allowed = (CONFIG.ALLOWED_EMAILS || []).map((e) => e.toLowerCase());
+    if (!email || !allowed.includes(email.toLowerCase())) {
+      handleSignedOut('This Google account is not authorized for admin access.');
+      return;
+    }
+
     signInButton.textContent = 'Signed in ✓';
     signInButton.disabled = true;
     gatedControls.forEach((el) => (el.disabled = false));

@@ -15,4 +15,14 @@ const CONFIG = {
   // "[Form Title] (File responses)" folder in My Drive). Used by admin.html
   // to show new submissions for sorting. Leave as-is to hide that section.
   SUBMISSIONS_FOLDER_ID: 'YOUR_SUBMISSIONS_FOLDER_ID',
+
+  // Google account email addresses allowed to use the admin panel. Anyone
+  // else who signs in will be signed back out immediately. Lowercase.
+  ALLOWED_EMAILS: [
+    'demson6733@gmail.com',
+    'cjdemson07@gmail.com',
+    'abbyjodem@gmail.com',
+    'rhia2836@gmail.com',
+    'jacobabyss@googlemail.com',
+  ],
 };
