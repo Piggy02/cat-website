@@ -14,12 +14,5 @@
     lightboxNext: document.querySelector('#lightbox .lightbox-next'),
   });
 
-  if (CONFIG.SUBMIT_FORM_URL && !CONFIG.SUBMIT_FORM_URL.startsWith('YOUR_')) {
-    const submitLink = document.getElementById('submitLink');
-    submitLink.href = CONFIG.SUBMIT_FORM_URL;
-    submitLink.hidden = false;
-    document.getElementById('footerSeparator').hidden = false;
-  }
-
   Gallery.start();
 })();

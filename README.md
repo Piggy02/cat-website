@@ -80,21 +80,24 @@ const CONFIG = {
    may see an "unverified app" warning — click **Advanced → Go to [app
    name]**, since this is your own app and you're a test user.
 
-### 6. (Optional) Add a "Submit a photo" link for visitors
+### 6. (Optional) Sort photos submitted via a private Google Form
+
+Photos are normally added through `admin.html`'s **Add photos** uploader. If
+you'd rather let family members submit photos via a privately-shared Google
+Form (not linked from the site), `admin.html` can still sort those:
 
 1. Create a [Google Form](https://forms.google.com) with:
    - A "Which cat is this?" question (multiple choice/dropdown, one option
      per cat folder name).
    - A "Photo" question of type **File upload**.
-2. Click **Send** and copy the form's link.
-3. Paste it into `js/config.js` as `SUBMIT_FORM_URL`. A "📷 Submit a photo"
-   link will appear in the site footer.
-4. Submit a test photo through the form (so Drive creates the responses
+2. Share the form's link privately with whoever should be able to submit
+   photos.
+3. Submit a test photo through the form (so Drive creates the responses
    folder). In Drive's "My Drive", find the new folder named something like
    *"[Your Form Title] (File responses)"*, open it, and copy the folder ID
    from its URL (`https://drive.google.com/drive/folders/<THIS_PART>`).
-5. Paste it into `js/config.js` as `SUBMISSIONS_FOLDER_ID`.
-6. On `admin.html`, after signing in, a **"New Submissions"** section appears
+4. Paste it into `js/config.js` as `SUBMISSIONS_FOLDER_ID`.
+5. On `admin.html`, after signing in, a **"New Submissions"** section appears
    at the top (if there are any) — select photos and use the toolbar at the
    bottom to move them into a cat's folder or delete them.
 
@@ -120,8 +123,9 @@ const CONFIG = {
   directly to a cat's folder, and select multiple photos to move them between
   cats or send them to the trash, directly from the site, with a confirmation
   step before each bulk action.
-- If `SUBMIT_FORM_URL` is configured, a "📷 Submit a photo" link appears in
-  the footer for visitors to add new photos via a Google Form.
+- If `SUBMISSIONS_FOLDER_ID` is configured, a "New Submissions" section on
+  `admin.html` lets admins sort photos submitted via a privately-shared
+  Google Form into the right cat folder.
 
 ## Notes
 
