@@ -1,6 +1,7 @@
 (function () {
   const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
   const SCOPE = 'https://www.googleapis.com/auth/drive';
+  const TOKEN_STORAGE_KEY = 'catAdminAuth';
 
   const statusEl = document.getElementById('status');
   const signInButton = document.getElementById('signInButton');
@@ -32,6 +33,61 @@
   function setStatus(msg, isError = false) {
     statusEl.textContent = msg;
     statusEl.classList.toggle('error', isError);
+  }
+
+  function saveToken(token, expiresInSeconds) {
+    const expiresAt = Date.now() + expiresInSeconds * 1000;
+    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token, expiresAt }));
+  }
+
+  function loadSavedToken() {
+    try {
+      const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
+      if (!raw) return null;
+      const { token, expiresAt } = JSON.parse(raw);
+      if (!token || !expiresAt || Date.now() >= expiresAt - 60000) {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        return null;
+      }
+      return token;
+    } catch {
+      return null;
+    }
+  }
+
+  function clearSavedToken() {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  }
+
+  function handleSignedIn(token) {
+    accessToken = token;
+    signInButton.textContent = 'Signed in ✓';
+    signInButton.disabled = true;
+    gatedControls.forEach((el) => (el.disabled = false));
+    setStatus('Signed in — select photos to move, delete, or upload new ones.');
+    loadSubmissions();
+  }
+
+  function handleSignedOut(message) {
+    accessToken = null;
+    clearSavedToken();
+    signInButton.textContent = 'Sign in with Google';
+    signInButton.disabled = false;
+    gatedControls.forEach((el) => (el.disabled = true));
+    if (message) setStatus(message, true);
+  }
+
+  // Wraps fetch with the access token, and signs the admin out again if the
+  // token has expired or been revoked server-side.
+  async function authFetch(url, options = {}) {
+    const res = await fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.status === 401) {
+      handleSignedOut('Your session expired — please sign in again.');
+    }
+    return res;
   }
 
   function updateBulkBar() {
@@ -122,9 +178,9 @@
         continue;
       }
       try {
-        const res = await fetch(
+        const res = await authFetch(
           `${DRIVE_API}/${entry.img.id}?addParents=${destId}&removeParents=${entry.fromFolderId}`,
-          { method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}` } }
+          { method: 'PATCH' }
         );
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
@@ -158,12 +214,9 @@
     setStatus(`Deleting ${count} photo${count === 1 ? '' : 's'}…`);
     for (const entry of entries) {
       try {
-        const res = await fetch(`${DRIVE_API}/${entry.img.id}`, {
+        const res = await authFetch(`${DRIVE_API}/${entry.img.id}`, {
           method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ trashed: true }),
         });
         if (!res.ok) {
@@ -207,14 +260,11 @@
       `\r\n--${boundary}--`,
     ]);
 
-    const res = await fetch(
+    const res = await authFetch(
       `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=${encodeURIComponent('id,name,thumbnailLink')}`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': `multipart/related; boundary=${boundary}`,
-        },
+        headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
         body,
       }
     );
@@ -275,7 +325,7 @@
     try {
       const query = `'${CONFIG.SUBMISSIONS_FOLDER_ID}' in parents and mimeType contains 'image/' and trashed=false`;
       const url = `${DRIVE_API}?q=${encodeURIComponent(query)}&fields=${encodeURIComponent('files(id,name,thumbnailLink)')}&pageSize=1000&orderBy=createdTime desc`;
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+      const res = await authFetch(url);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error?.message || `Error ${res.status}`);
@@ -335,14 +385,15 @@
           setStatus(`⚠️ ${response.error}`, true);
           return;
         }
-        accessToken = response.access_token;
-        signInButton.textContent = 'Signed in ✓';
-        signInButton.disabled = true;
-        gatedControls.forEach((el) => (el.disabled = false));
-        setStatus('Signed in — select photos to move or delete them.');
-        loadSubmissions();
+        saveToken(response.access_token, response.expires_in);
+        handleSignedIn(response.access_token);
       },
     });
+
+    const savedToken = loadSavedToken();
+    if (savedToken) {
+      handleSignedIn(savedToken);
+    }
   });
 
   Gallery.start();
